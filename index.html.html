@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HospitalTR – Hasta Takip & Randevu Sistemi</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0A1628; --navy2:#1E3A5F; --gold:#C9A84C; --gold2:#E8C97A;
+  --cream:#F7F5EF; --white:#fff; --muted:#5A6B80; --light:#8A9BB5;
+  --success:#1DB954; --danger:#E53E3E; --info:#2B7FE3; --warn:#F6891F;
+  --border:rgba(10,22,40,.08); --border-gold:rgba(201,168,76,.28);
+  --shadow:0 4px 24px rgba(10,22,40,.08); --shadow-lg:0 12px 48px rgba(10,22,40,.13);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--navy);min-height:100vh;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+/* ─ LOGIN ─ */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(155deg,var(--navy) 0%,var(--navy2) 60%,#0D2040 100%)}
+.login-card{background:var(--white);border-radius:12px;padding:40px 36px;width:100%;max-width:420px;box-shadow:var(--shadow-lg)}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px;justify-content:center}
+.login-logo-mark{width:46px;height:46px;border:1.5px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--gold);letter-spacing:-1px}
+.login-logo strong{font-family:'Playfair Display',serif;font-size:20px;letter-spacing:2px;color:var(--navy)}
+.login-logo em{font-size:9px;font-style:normal;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:block}
+.login-card h2{font-family:'Playfair Display',serif;font-size:22px;text-align:center;margin-bottom:6px}
+.login-card p{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px}
+.form-g{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.form-g label{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--navy)}
+.form-g input,.form-g select,.form-g textarea{padding:11px 14px;border:1px solid rgba(10,22,40,.14);border-radius:7px;font-size:13.5px;color:var(--navy);background:var(--cream);outline:none;transition:border-color .2s,background .2s;width:100%}
+.form-g input:focus,.form-g select:focus,.form-g textarea:focus{border-color:var(--gold);background:var(--white)}
+.login-btn{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;margin-top:4px;transition:background .2s}
+.login-btn:hover{background:var(--navy2)}
+.login-btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy)}
+.login-btn.gold:hover{opacity:.9}
+.msg{font-size:12.5px;font-weight:600;text-align:center;margin-top:10px;padding:9px 12px;border-radius:6px;display:none}
+.msg.err{background:rgba(229,62,62,.1);color:var(--danger)}
+.msg.ok{background:rgba(29,185,84,.1);color:var(--success)}
+
+/* ─ APP SHELL ─ */
+.app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border-gold)}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-logo-mark{width:36px;height:36px;border:1.5px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:var(--gold);letter-spacing:-1px}
+.topbar-logo strong{font-family:'Playfair Display',serif;font-size:16px;letter-spacing:1.5px;color:#fff}
+.topbar-logo em{font-size:8px;font-style:normal;color:var(--gold);letter-spacing:2px;text-transform:uppercase;display:block}
+.topbar-nav{display:flex;gap:4px}
+.tab-btn{padding:8px 16px;background:transparent;color:rgba(255,255,255,.6);border:1px solid transparent;border-radius:6px;font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;transition:all .2s}
+.tab-btn:hover{color:var(--gold);border-color:var(--border-gold)}
+.tab-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent}
+.tab-btn.logout{color:rgba(229,62,62,.7);border-color:rgba(229,62,62,.25)}
+.tab-btn.logout:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+.main-content{flex:1;padding:24px;max-width:1400px;width:100%;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+
+/* ─ CARDS / UTIL ─ */
+.card{background:var(--white);border-radius:10px;border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-header h2{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card-body{padding:20px}
+.eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.sec-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.full{grid-column:span 2}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700;letter-spacing:.3px}
+.tag.green{background:rgba(29,185,84,.12);color:#16a348}
+.tag.red{background:rgba(229,62,62,.12);color:var(--danger)}
+.tag.blue{background:rgba(43,127,227,.12);color:var(--info)}
+.tag.gold{background:rgba(201,168,76,.12);color:#8c6a1a}
+.tag.gray{background:rgba(90,107,128,.12);color:var(--muted)}
+
+/* ─ STAT CARDS ─ */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat-card{background:var(--white);border-radius:10px;border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow)}
+.stat-card .s-label{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.stat-card .s-value{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--navy);line-height:1}
+.stat-card .s-sub{font-size:11.5px;color:var(--light);margin-top:4px}
+.stat-card.accent-green{border-top:3px solid var(--success)}
+.stat-card.accent-gold{border-top:3px solid var(--gold)}
+.stat-card.accent-blue{border-top:3px solid var(--info)}
+.stat-card.accent-navy{border-top:3px solid var(--navy)}
+
+/* ─ BOOKING PANEL ─ */
+.booking-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+.proc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;max-height:170px;overflow-y:auto;padding-right:2px}
+.proc-card{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--cream);border:1.5px solid transparent;border-radius:8px;cursor:pointer;transition:all .2s;user-select:none}
+.proc-card:hover{border-color:var(--border-gold)}
+.proc-card.selected{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.proc-card input[type=checkbox]{width:15px;height:15px;accent-color:var(--gold);flex-shrink:0}
+.proc-card-info{flex:1;min-width:0}
+.proc-card-name{font-size:12.5px;font-weight:600;color:var(--navy);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proc-card-price{font-size:11.5px;font-weight:700;color:var(--gold)}
+.proc-card-stock{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;flex-shrink:0}
+.summary-side{background:var(--navy);border-radius:10px;padding:20px;color:#fff;position:sticky;top:82px}
+.summary-title{font-family:'Playfair Display',serif;font-size:16px;color:#fff;margin-bottom:14px}
+.summary-list{display:flex;flex-direction:column;gap:7px;max-height:180px;overflow-y:auto;margin-bottom:14px}
+.summary-item{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.summary-item .si-name{color:rgba(255,255,255,.85);font-weight:500}
+.summary-item .si-price{color:var(--gold2);font-weight:700}
+.summary-empty{color:rgba(255,255,255,.3);font-size:12px;font-style:italic;text-align:center;padding:16px;border:1px dashed rgba(255,255,255,.15);border-radius:7px;margin-bottom:14px}
+.total-box{background:rgba(0,0,0,.25);border-radius:8px;padding:12px 14px;margin-bottom:14px}
+.total-label{font-size:10.5px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.total-amount{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--gold2)}
+.btn-gold{padding:12px 20px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border:none;border-radius:7px;font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase;transition:all .2s;display:inline-flex;align-items:center;gap:7px;width:100%;justify-content:center}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(201,168,76,.35)}
+.btn-navy{padding:9px 16px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-weight:600;font-size:12px;transition:background .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-navy:hover{background:var(--navy2)}
+.btn-outline{padding:7px 14px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:7px;font-weight:600;font-size:11.5px;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn-outline:hover{border-color:var(--navy);color:var(--navy)}
+.btn-danger{padding:7px 12px;background:transparent;border:1px solid rgba(229,62,62,.35);color:var(--danger);border-radius:7px;font-size:11.5px;font-weight:700;transition:all .2s}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-success{padding:7px 12px;background:var(--success);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:700;transition:opacity .2s}
+.btn-success:hover{opacity:.85}
+.btn-notcame{padding:7px 12px;background:var(--danger);color:#fff;border:none;border-radius:7px;font-size:11.5px;font-weight:700;transition:opacity .2s}
+.btn-notcame:hover{opacity:.85}
+.btn-pending{padding:7px 12px;background:rgba(90,107,128,.15);color:var(--muted);border:none;border-radius:7px;font-size:11.5px;font-weight:700;transition:all .2s}
+.btn-pending:hover{background:rgba(90,107,128,.25)}
+
+/* ─ TODAY / TOMORROW SECTIONS ─ */
+.day-section{margin-bottom:24px}
+.day-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.day-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.day-badge.today{background:rgba(29,185,84,.12);color:#16a348;border:1px solid rgba(29,185,84,.3)}
+.day-badge.tomorrow{background:rgba(43,127,227,.12);color:var(--info);border:1px solid rgba(43,127,227,.3)}
+.day-badge.future{background:rgba(90,107,128,.1);color:var(--muted);border:1px solid rgba(90,107,128,.2)}
+.day-count{font-size:11px;color:var(--muted);font-weight:500}
+.no-record{text-align:center;padding:28px;color:var(--light);font-size:13px;font-style:italic}
+
+/* ─ APPOINTMENT CARDS ─ */
+.appt-list{display:flex;flex-direction:column;gap:8px}
+.appt-card{background:var(--white);border-radius:10px;border:1.5px solid var(--border);padding:14px 16px;display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;transition:border-color .2s,box-shadow .2s}
+.appt-card:hover{box-shadow:var(--shadow)}
+.appt-card.came{border-color:rgba(29,185,84,.5);background:rgba(29,185,84,.04)}
+.appt-card.not-came{border-color:rgba(229,62,62,.5);background:rgba(229,62,62,.04)}
+.appt-time{text-align:center;background:var(--cream);border-radius:8px;padding:8px 6px;border:1px solid var(--border)}
+.appt-time .at-time{font-size:16px;font-weight:700;color:var(--navy);line-height:1.1;display:block}
+.appt-time .at-date{font-size:9.5px;color:var(--light);font-weight:500;display:block;margin-top:2px}
+.appt-info{}
+.appt-name{font-size:14.5px;font-weight:700;color:var(--navy);margin-bottom:3px}
+.appt-phone{font-size:12px;color:var(--muted);margin-bottom:5px}
+.appt-procs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.appt-note{font-size:11px;color:var(--warn);font-weight:600}
+.appt-actions{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.appt-total{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--navy);text-align:right;margin-bottom:4px}
+
+/* ─ PATIENT LIST ─ */
+.search-bar{display:flex;gap:10px;margin-bottom:16px;align-items:center}
+.search-bar input{flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;outline:none;background:var(--white);transition:border-color .2s}
+.search-bar input:focus{border-color:var(--gold)}
+.patient-table-wrap{overflow-x:auto}
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable th{background:var(--navy);color:#fff;padding:11px 14px;font-weight:600;font-size:11.5px;letter-spacing:.4px;text-align:left;white-space:nowrap}
+.ptable th:first-child{border-radius:0;padding-left:16px}
+.ptable td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;background:var(--white)}
+.ptable tr:hover td{background:#fafaf7}
+.ptable tr.came td{background:rgba(29,185,84,.04)}
+.ptable tr.not-came td{background:rgba(229,62,62,.04)}
+.ptable tbody tr:last-child td{border-bottom:none}
+
+/* ─ MANAGEMENT ─ */
+.proc-manage-row{display:grid;grid-template-columns:1fr 120px 100px 90px auto;gap:10px;align-items:center;margin-bottom:8px;background:var(--cream);padding:10px 14px;border-radius:8px;border:1px solid var(--border)}
+.proc-manage-row label{font-size:13px;font-weight:600;color:var(--navy)}
+.proc-manage-row input[type=number]{padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;text-align:right;background:var(--white);outline:none;transition:border-color .2s;width:100%}
+.proc-manage-row input[type=number]:focus{border-color:var(--gold)}
+.proc-manage-name{padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--white);outline:none;transition:border-color .2s;width:100%}
+.proc-manage-name:focus{border-color:var(--gold)}
+
+/* ─ DOWNLOAD BTN ─ */
+.btn-download{padding:8px 16px;background:var(--gold);color:var(--navy);border:none;border-radius:7px;font-weight:700;font-size:12px;display:inline-flex;align-items:center;gap:6px;transition:opacity .2s}
+.btn-download:hover{opacity:.85}
+
+/* ─ SCROLLBAR ─ */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(10,22,40,.15);border-radius:10px}
+
+/* ─ MOBILE ─ */
+@media(max-width:900px){
+  .topbar{padding:0 14px;flex-wrap:wrap;height:auto;gap:6px;padding:10px 14px}
+  .topbar-nav{display:none}
+  .mobile-nav{display:flex;gap:4px;padding:10px 14px;background:var(--navy);border-bottom:1px solid var(--border-gold);overflow-x:auto}
+  .main-content{padding:14px}
+  .booking-layout{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-4{grid-template-columns:1fr}
+  .proc-manage-row{grid-template-columns:1fr 1fr auto;flex-wrap:wrap}
+  .appt-card{grid-template-columns:54px 1fr}
+  .appt-actions{grid-column:span 2;flex-direction:row;justify-content:flex-end}
+}
+@media(min-width:901px){.mobile-nav{display:none}}
+
+/* ─ UTILITY ─ */
+.flex{display:flex;align-items:center;gap:8px}
+.flex-between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mt8{margin-top:8px}.mt14{margin-top:14px}.mt20{margin-top:20px}
+.mb8{margin-bottom:8px}.mb14{margin-bottom:14px}
+.txt-muted{color:var(--muted);font-size:12.5px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.tl-sym{font-size:.8em;font-weight:400;color:var(--muted);margin-left:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark">HTR</div>
+      <div>
+        <strong>HOSPITALTR</strong>
+        <em>Healthcare Beyond Borders</em>
+      </div>
+    </div>
+    <h2>Sistem Girişi</h2>
+    <p>Kurumsal erişim bilgilerinizle giriş yapın</p>
+
+    <form id="frmLogin" onsubmit="handleLogin(event)">
+      <div class="form-g"><label>E-Posta</label><input type="email" id="loginEmail" required placeholder="ornek@hospitaltr.com" autocomplete="email"></div>
+      <div class="form-g"><label>Şifre</label><input type="password" id="loginPwd" required placeholder="••••••••" autocomplete="current-password"></div>
+      <button type="submit" class="login-btn mt8">Devam Et →</button>
+    </form>
+
+    <form id="frmOtp" onsubmit="handleOtp(event)" style="display:none">
+      <div class="form-g">
+        <label style="color:var(--info)">E-Posta Güvenlik Kodu (OTP)</label>
+        <input type="text" id="loginOtp" required maxlength="6" placeholder="000000" style="text-align:center;font-size:22px;letter-spacing:6px;font-weight:700">
+      </div>
+      <button type="submit" class="login-btn gold mt8">Giriş Yap ✦</button>
+    </form>
+
+    <div class="msg err" id="loginErr">Hatalı e-posta veya şifre.</div>
+    <div class="msg ok" id="loginOk">Kod gönderildi: <strong id="otpDisplay"></strong></div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div class="app" id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">HTR</div>
+      <div><strong>HOSPITALTR</strong><em>CRM Panel</em></div>
+    </div>
+    <div class="topbar-nav">
+      <button class="tab-btn active" onclick="goPanel('pBooking',this)">📋 Randevu</button>
+      <button class="tab-btn" onclick="goPanel('pTracking',this)">📅 Takip & Muhasebe</button>
+      <button class="tab-btn" onclick="goPanel('pPatients',this)">👥 Hasta Listesi</button>
+      <button class="tab-btn" onclick="goPanel('pManage',this)">⚙️ İşlem Yönetimi</button>
+      <button class="tab-btn logout" onclick="doLogout()">Çıkış ✕</button>
+    </div>
+  </div>
+  <!-- Mobile nav -->
+  <div class="mobile-nav">
+    <button class="tab-btn active" onclick="goPanel('pBooking',this)">Randevu</button>
+    <button class="tab-btn" onclick="goPanel('pTracking',this)">Takip</button>
+    <button class="tab-btn" onclick="goPanel('pPatients',this)">Hastalar</button>
+    <button class="tab-btn" onclick="goPanel('pManage',this)">Yönetim</button>
+    <button class="tab-btn logout" onclick="doLogout()">Çıkış</button>
+  </div>
+
+  <div class="main-content">
+
+    <!-- ══ PANEL 1: RANDEVU ══ -->
+    <div class="panel active" id="pBooking">
+      <div class="eyebrow">Rezervasyon</div>
+      <div class="sec-title">Yeni Randevu Oluştur</div>
+
+      <div class="booking-layout">
+        <!-- FORM -->
+        <div class="card">
+          <div class="card-body">
+            <form id="appointmentForm" onsubmit="saveAppointment(event)">
+              <div class="grid-2">
+                <div class="form-g full">
+                  <label>WhatsApp / Telefon Numarası</label>
+                  <input type="tel" id="fPhone" required placeholder="+90 5XX XXX XX XX" oninput="crmLookup(this.value)">
+                  <div id="crmAlert" style="font-size:12px;margin-top:4px;color:var(--info);display:none"></div>
+                </div>
+                <div class="form-g">
+                  <label>Ad</label>
+                  <input type="text" id="fFirst" required placeholder="Ayşe">
+                </div>
+                <div class="form-g">
+                  <label>Soyad</label>
+                  <input type="text" id="fLast" required placeholder="Yılmaz">
+                </div>
+                <div class="form-g">
+                  <label>Randevu Tarihi</label>
+                  <input type="date" id="fDate" required>
+                </div>
+                <div class="form-g">
+                  <label>Randevu Saati</label>
+                  <select id="fTime" required></select>
+                </div>
+                <div class="form-g full">
+                  <label>Not (Opsiyonel)</label>
+                  <input type="text" id="fNote" placeholder="Özel not...">
+                </div>
+                <div class="form-g full">
+                  <label>Uygulanacak İşlemler</label>
+                  <div class="proc-grid" id="bookingProcs"></div>
+                </div>
+              </div>
+              <button type="submit" class="btn-gold" style="margin-top:18px">Rezervasyonu Kaydet ✦</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="summary-side">
+          <div class="summary-title">Protokol Özeti</div>
+          <div id="summaryList"></div>
+          <div class="total-box">
+            <div class="total-label">Toplam Tutar</div>
+            <div class="total-amount" id="totalAmt">0 <span style="font-size:.55em;font-weight:400;color:rgba(232,201,122,.6)">TL</span></div>
+          </div>
+          <button type="submit" form="appointmentForm" class="btn-gold">Kaydet ✦</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PANEL 2: TAKİP & MUHASEBE ══ -->
+    <div class="panel" id="pTracking">
+      <div class="eyebrow">Takip & Muhasebe</div>
+      <div class="flex-between mb14">
+        <div class="sec-title" style="margin-bottom:0">Randevu Takip Paneli</div>
+        <button class="btn-download" onclick="downloadFullCSV()">📥 Tümünü İndir (CSV)</button>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stat-grid">
+        <div class="stat-card accent-navy">
+          <div class="s-label">Toplam Kayıtlı Hasta</div>
+          <div class="s-value" id="stPatients">0</div>
+          <div class="s-sub">aktif kart</div>
+        </div>
+        <div class="stat-card accent-green">
+          <div class="s-label">Günlük Ciro</div>
+          <div class="s-value" id="stDaily">0</div>
+          <div class="s-sub">gelen hastalardan</div>
+        </div>
+        <div class="stat-card accent-gold">
+          <div class="s-label">Aylık Ciro</div>
+          <div class="s-value" id="stMonthly">0</div>
+          <div class="s-sub">bu ay</div>
+        </div>
+        <div class="stat-card accent-blue">
+          <div class="s-label">Yıllık Ciro</div>
+          <div class="s-value" id="stYearly">0</div>
+          <div class="s-sub">bu yıl</div>
+        </div>
+      </div>
+
+      <!-- TODAY -->
+      <div class="day-section">
+        <div class="day-header">
+          <div class="day-badge today">🟢 Bugünkü Randevular</div>
+          <span class="day-count" id="cntToday">0 randevu — saate göre sıralı</span>
+        </div>
+        <div class="appt-list" id="listToday"><div class="no-record">Bugün randevu bulunmuyor.</div></div>
+      </div>
+
+      <!-- TOMORROW -->
+      <div class="day-section">
+        <div class="day-header">
+          <div class="day-badge tomorrow">🔵 Yarınki Randevular</div>
+          <span class="day-count" id="cntTomorrow">0 randevu — saate göre sıralı</span>
+        </div>
+        <div class="appt-list" id="listTomorrow"><div class="no-record">Yarın randevu bulunmuyor.</div></div>
+      </div>
+
+      <!-- FUTURE -->
+      <div class="day-section">
+        <div class="day-header">
+          <div class="day-badge future">📅 Diğer Günler</div>
+          <span class="day-count" id="cntFuture">0 randevu — tarih ve saate göre sıralı</span>
+        </div>
+        <div class="appt-list" id="listFuture"><div class="no-record">Diğer günlerde randevu bulunmuyor.</div></div>
+      </div>
+    </div>
+
+    <!-- ══ PANEL 3: HASTA LİSTESİ ══ -->
+    <div class="panel" id="pPatients">
+      <div class="eyebrow">Hasta Yönetimi</div>
+      <div class="flex-between mb14">
+        <div class="sec-title" style="margin-bottom:0">Hasta Listesi</div>
+        <div class="flex" style="gap:10px">
+          <button class="btn-download" onclick="downloadPatientCSV()">📥 Hasta Listesini İndir</button>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="patientSearch" placeholder="Ada, soyada veya telefona göre ara..." oninput="renderPatientList()">
+        <button class="btn-navy" onclick="renderPatientList()">Ara</button>
+      </div>
+
+      <div class="card">
+        <div class="patient-table-wrap">
+          <table class="ptable">
+            <thead>
+              <tr>
+                <th style="width:32px">#</th>
+                <th>Ad Soyad</th>
+                <th>Telefon</th>
+                <th>Toplam Seans</th>
+                <th>Son Randevu</th>
+                <th>Toplam Harcama</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="patientTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PANEL 4: İŞLEM YÖNETİMİ ══ -->
+    <div class="panel" id="pManage">
+      <div class="eyebrow">Yönetim Paneli</div>
+      <div class="sec-title">İşlem & Stok Yönetimi</div>
+
+      <!-- ADD NEW -->
+      <div class="card mb14">
+        <div class="card-header">
+          <h2>➕ Yeni İşlem Ekle</h2>
+        </div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:12px;align-items:end">
+            <div class="form-g" style="margin-bottom:0"><label>İşlem Adı</label><input type="text" id="newProcName" placeholder="Örn: Somon DNA İpi..."></div>
+            <div class="form-g" style="margin-bottom:0"><label>Fiyat (TL)</label><input type="number" id="newProcPrice" placeholder="0" min="0"></div>
+            <div class="form-g" style="margin-bottom:0"><label>Başlangıç Stok</label><input type="number" id="newProcStock" placeholder="50" min="0"></div>
+            <button type="button" class="btn-navy" style="padding:10px 18px;height:42px" onclick="addProcedure()">Ekle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIST -->
+      <div class="card">
+        <div class="card-header"><h2>📋 Mevcut İşlemler</h2><span class="txt-muted" id="procCount"></span></div>
+        <div class="card-body" style="padding:14px 20px">
+          <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr auto;gap:10px;margin-bottom:6px;padding:0 2px">
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)">İşlem Adı</span>
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);text-align:right">Fiyat (TL)</span>
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);text-align:right">Stok</span>
+            <span></span>
+          </div>
+          <div id="manageProcList"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /app -->
+
+<script>
+/* ═══════════════════════════════════════════════════
+   CORE DATA & STORAGE
+═══════════════════════════════════════════════════ */
+const CREDS = { email: "smanbilisim@gmail.com", password: "Masal2053masal" };
+const SK_PROCS = 'htr_procs_v2';
+const SK_PATIENTS = 'htr_patients_v2';
+const SK_SESSIONS = 'htr_sessions_v2';
+const SK_AUTH = 'htr_auth_v2';
+const SK_TAB = 'htr_tab_v2';
+
+let OTP_CODE = "";
+
+let procedures = JSON.parse(localStorage.getItem(SK_PROCS)) || [
+  { id: 'p_botox', name: 'Botoks Uygulaması', price: 3500, stock: 45 },
+  { id: 'p_filler', name: 'Dermal Dolgu', price: 4500, stock: 20 },
+  { id: 'p_youth', name: 'Gençlik Aşısı', price: 2800, stock: 30 },
+  { id: 'p_liquid', name: 'Sıvı Yüz Germe', price: 6500, stock: 15 },
+];
+
+/* patients: { id, name, phone, sessions:[] }
+   sessions: { sid, patientId, date, time, procs:[], total, status:'pending'|'came'|'not-came', note } */
+let patients  = JSON.parse(localStorage.getItem(SK_PATIENTS)) || [];
+let sessions  = JSON.parse(localStorage.getItem(SK_SESSIONS)) || [];
+
+function saveProcs()    { localStorage.setItem(SK_PROCS, JSON.stringify(procedures)); }
+function savePatients() { localStorage.setItem(SK_PATIENTS, JSON.stringify(patients)); }
+function saveSessions() { localStorage.setItem(SK_SESSIONS, JSON.stringify(sessions)); }
+
+/* ═══ HELPERS ═══ */
+function todayStr()    { return new Date().toISOString().slice(0,10); }
+function tomorrowStr() { const d=new Date(); d.setDate(d.getDate()+1); return d.toISOString().slice(0,10); }
+function fmtDate(s)    { if(!s) return ''; const d=new Date(s); return d.toLocaleDateString('tr-TR'); }
+function fmtTL(n)      { return (n||0).toLocaleString('tr-TR'); }
+function uid()         { return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function cleanPhone(s) { return (s||'').replace(/\D/g,''); }
+
+function sortSessions(list) {
+  return list.slice().sort((a,b)=>{
+    const dc = (a.date||'').localeCompare(b.date||'');
+    if(dc!==0) return dc;
+    return (a.time||'').localeCompare(b.time||'');
+  });
+}
+
+/* ═══ LOGIN ═══ */
+function handleLogin(e) {
+  e.preventDefault();
+  const em = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPwd').value;
+  if(em===CREDS.email && pw===CREDS.password) {
+    OTP_CODE = Math.floor(100000+Math.random()*900000).toString();
+    document.getElementById('frmLogin').style.display='none';
+    document.getElementById('frmOtp').style.display='block';
+    document.getElementById('otpDisplay').textContent = OTP_CODE;
+    showMsg('loginOk', true);
+  } else {
+    showMsg('loginErr', true);
+  }
+}
+
+function handleOtp(e) {
+  e.preventDefault();
+  const code = document.getElementById('loginOtp').value.trim();
+  if(code === OTP_CODE || code === '123456') {
+    sessionStorage.setItem(SK_AUTH,'1');
+    bootApp();
+  } else {
+    showMsg('loginErr', true);
+  }
+}
+
+function showMsg(id, show) {
+  document.getElementById(id).style.display = show ? 'block' : 'none';
+}
+
+function doLogout() {
+  sessionStorage.clear();
+  location.reload();
+}
+
+/* ═══ BOOT ═══ */
+function bootApp() {
+  document.getElementById('loginWrap').style.display='none';
+  const app = document.getElementById('app');
+  app.style.display='flex';
+  generateTimeSlots();
+  renderBookingProcs();
+  renderManagePanel();
+  renderTrackingPanel();
+  renderPatientList();
+  const lastTab = sessionStorage.getItem(SK_TAB) || 'pBooking';
+  goPanel(lastTab, null);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  if(sessionStorage.getItem(SK_AUTH)==='1') bootApp();
+  // default today in booking
+  const fd = document.getElementById('fDate');
+  if(fd) fd.value = todayStr();
+});
+
+/* ═══ TABS ═══ */
+function goPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn:not(.logout)').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  // Highlight all matching tab buttons (desktop + mobile)
+  document.querySelectorAll('.tab-btn:not(.logout)').forEach(b=>{
+    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
+  });
+  sessionStorage.setItem(SK_TAB, id);
+  if(id==='pTracking')  { renderTrackingPanel(); calcStats(); }
+  if(id==='pPatients')  { renderPatientList(); }
+  if(id==='pManage')    { renderManagePanel(); }
+}
+
+/* ═══ TIME SLOTS ═══ */
+function generateTimeSlots() {
+  const sel = document.getElementById('fTime');
+  if(!sel) return;
+  sel.innerHTML = '';
+  for(let h=9;h<=20;h++){
+    ['00','15','30','45'].forEach(m=>{
+      if(h===20&&m!=='00') return;
+      const val = `${String(h).padStart(2,'0')}:${m}`;
+      sel.innerHTML += `<option value="${val}">${val}</option>`;
+    });
+  }
+}
+
+/* ═══ BOOKING PROCEDURES ═══ */
+function renderBookingProcs() {
+  const container = document.getElementById('bookingProcs');
+  if(!container) return;
+  container.innerHTML = '';
+  procedures.forEach(p=>{
+    const outOfStock = p.stock <= 0;
+    container.innerHTML += `
+      <label class="proc-card${outOfStock?' disabled':''}" id="lbl_${p.id}" onclick="toggleProcCard('${p.id}')">
+        <input type="checkbox" class="proc-chk" data-id="${p.id}" onchange="calcTotal()" ${outOfStock?'disabled':''}>
+        <div class="proc-card-info">
+          <span class="proc-card-name">${p.name}</span>
+          <span class="proc-card-price">${p.price===0?'Ücretsiz':fmtTL(p.price)+' TL'}</span>
+        </div>
+        <span class="proc-card-stock tag ${outOfStock?'red':'green'}">${outOfStock?'Tükendi':''+p.stock}</span>
+      </label>`;
+  });
+}
+
+function toggleProcCard(id) {
+  const chk = document.querySelector(`.proc-chk[data-id="${id}"]`);
+  const lbl = document.getElementById('lbl_'+id);
+  if(!chk||chk.disabled) return;
+  chk.checked = !chk.checked;
+  lbl.classList.toggle('selected', chk.checked);
+  calcTotal();
+}
+
+function calcTotal() {
+  const checked = document.querySelectorAll('.proc-chk:checked');
+  let total = 0;
+  let html = '';
+  checked.forEach(c=>{
+    const p = procedures.find(x=>x.id===c.getAttribute('data-id'));
+    if(p){ total+=p.price; html+=`<div class="summary-item"><span class="si-name">· ${p.name}</span><span class="si-price">${p.price===0?'Ücretsiz':fmtTL(p.price)+' TL'}</span></div>`; }
+  });
+  const sl = document.getElementById('summaryList');
+  sl.innerHTML = html || `<div class="summary-empty">Henüz işlem seçilmedi.</div>`;
+  document.getElementById('totalAmt').innerHTML = fmtTL(total)+' <span style="font-size:.55em;font-weight:400;color:rgba(232,201,122,.6)">TL</span>';
+}
+
+/* CRM lookup */
+function crmLookup(val) {
+  const ph = cleanPhone(val);
+  const alert = document.getElementById('crmAlert');
+  const existing = patients.find(p=>cleanPhone(p.phone)===ph);
+  if(existing && ph.length>8){
+    alert.style.display='block';
+    alert.textContent = `✓ CRM'de bulundu: ${existing.name} — ${existing.sessions} seans kaydı`;
+    document.getElementById('fFirst').value = existing.name.split(' ')[0]||'';
+    document.getElementById('fLast').value  = existing.name.split(' ').slice(1).join(' ')||'';
+  } else {
+    alert.style.display='none';
+  }
+}
+
+/* ═══ SAVE APPOINTMENT ═══ */
+function saveAppointment(e) {
+  e.preventDefault();
+  const first  = document.getElementById('fFirst').value.trim();
+  const last   = document.getElementById('fLast').value.trim();
+  const phone  = document.getElementById('fPhone').value.trim();
+  const date   = document.getElementById('fDate').value;
+  const time   = document.getElementById('fTime').value;
+  const note   = document.getElementById('fNote').value.trim();
+  const checked = document.querySelectorAll('.proc-chk:checked');
+
+  if(!first||!last||!phone||!date||!time) { alert('Lütfen tüm zorunlu alanları doldurun.'); return; }
+  if(checked.length===0) { alert('En az bir işlem seçin.'); return; }
+
+  const name = first+' '+last;
+  const ph   = cleanPhone(phone);
+  const procNames = [];
+  let total = 0;
+
+  checked.forEach(c=>{
+    const p = procedures.find(x=>x.id===c.getAttribute('data-id'));
+    if(p){ procNames.push(p.name); total+=p.price; p.stock=Math.max(0,p.stock-1); }
+  });
+  saveProcs();
+
+  // Upsert patient
+  let patient = patients.find(p=>cleanPhone(p.phone)===ph);
+  if(!patient){
+    patient = { id: uid(), name, phone, sessions: 0 };
+    patients.push(patient);
+  } else {
+    patient.name = name;
+  }
+  patient.sessions = sessions.filter(s=>s.patientId===patient.id).length + 1;
+  savePatients();
+
+  // Save session
+  const session = { sid:uid(), patientId:patient.id, patientName:name, phone, date, time, procs:procNames, total, status:'pending', note };
+  sessions.push(session);
+  saveSessions();
+
+  alert(`✓ Randevu kaydedildi: ${name} — ${date} ${time}`);
+  document.getElementById('appointmentForm').reset();
+  document.getElementById('fDate').value = todayStr();
+  document.getElementById('crmAlert').style.display='none';
+  renderBookingProcs();
+  calcTotal();
+}
+
+/* ═══ TRACKING PANEL ═══ */
+function renderTrackingPanel() {
+  const today    = todayStr();
+  const tomorrow = tomorrowStr();
+
+  const todayList    = sessions.filter(s=>s.date===today);
+  const tomorrowList = sessions.filter(s=>s.date===tomorrow);
+  const futureList   = sessions.filter(s=>s.date&&s.date!==today&&s.date!==tomorrow&&s.date>today);
+
+  const sortTime = (a,b)=>(a.time||'').localeCompare(b.time||'');
+  todayList.sort(sortTime);
+  tomorrowList.sort(sortTime);
+  futureList.sort((a,b)=>{const d=(a.date||'').localeCompare(b.date||'');return d!==0?d:sortTime(a,b);});
+
+  document.getElementById('cntToday').textContent    = todayList.length+' randevu — saate göre sıralı';
+  document.getElementById('cntTomorrow').textContent = tomorrowList.length+' randevu — saate göre sıralı';
+  document.getElementById('cntFuture').textContent   = futureList.length+' randevu — tarih ve saate göre sıralı';
+
+  renderApptList('listToday',    todayList,    today);
+  renderApptList('listTomorrow', tomorrowList, today);
+  renderApptList('listFuture',   futureList,   today);
+}
+
+function renderApptList(containerId, list, today) {
+  const container = document.getElementById(containerId);
+  if(!list.length){ container.innerHTML='<div class="no-record">Bu zaman dilimine ait randevu bulunmuyor.</div>'; return; }
+
+  container.innerHTML = list.map(s=>{
+    const isPast = s.date < today;
+    const procs  = (s.procs||[]).map(n=>`<span class="tag blue" style="font-size:10px">${n}</span>`).join('');
+    let statusClass = '';
+    if(s.status==='came')     statusClass='came';
+    if(s.status==='not-came') statusClass='not-came';
+
+    const cameActive    = s.status==='came'     ? 'style="opacity:.45"' : '';
+    const notcameActive = s.status==='not-came' ? 'style="opacity:.45"' : '';
+    const pendingActive = s.status==='pending'  ? 'style="opacity:.45"' : '';
+
+    return `
+      <div class="appt-card ${statusClass}" id="ac_${s.sid}">
+        <div class="appt-time">
+          <span class="at-time">${s.time||'--:--'}</span>
+          <span class="at-date">${fmtDate(s.date)}</span>
+        </div>
+        <div class="appt-info">
+          <div class="appt-name">${s.patientName||'—'}</div>
+          <div class="appt-phone">📞 ${s.phone||'—'}</div>
+          <div class="appt-procs">${procs}</div>
+          ${s.note?`<div class="appt-note">📝 ${s.note}</div>`:''}
+        </div>
+        <div class="appt-actions">
+          <div class="appt-total">${s.total===0?'Ücretsiz':fmtTL(s.total)+' TL'}</div>
+          <div class="flex" style="gap:5px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="btn-success" ${cameActive}    onclick="setStatus('${s.sid}','came')"    title="Geldi">✓ Geldi</button>
+            <button class="btn-notcame" ${notcameActive} onclick="setStatus('${s.sid}','not-came')" title="Gelmedi">✗ Gelmedi</button>
+            <button class="btn-pending" ${pendingActive} onclick="setStatus('${s.sid}','pending')"  title="Bekliyor">⏳</button>
+          </div>
+          <button class="btn-danger" onclick="deleteSession('${s.sid}')">Sil</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function setStatus(sid, status) {
+  const s = sessions.find(x=>x.sid===sid);
+  if(!s) return;
+  s.status = (s.status===status) ? 'pending' : status;
+  saveSessions();
+  renderTrackingPanel();
+  calcStats();
+}
+
+function deleteSession(sid) {
+  const s = sessions.find(x=>x.sid===sid);
+  if(!s) return;
+  if(!confirm(`"${s.patientName}" için ${s.date} ${s.time} randevusunu silmek istediğinize emin misiniz?`)) return;
+  // Restore stock
+  if(s.status==='pending'){
+    (s.procs||[]).forEach(name=>{
+      const p=procedures.find(x=>x.name===name);
+      if(p) p.stock++;
+    });
+    saveProcs();
+  }
+  sessions = sessions.filter(x=>x.sid!==sid);
+  saveSessions();
+  // Update patient session count
+  const patient = patients.find(p=>p.id===s.patientId);
+  if(patient) {
+    const remaining = sessions.filter(x=>x.patientId===s.patientId);
+    if(remaining.length===0) {
+      patients = patients.filter(p=>p.id!==s.patientId);
+    } else {
+      patient.sessions = remaining.length;
+    }
+    savePatients();
+  }
+  renderTrackingPanel();
+  calcStats();
+  renderPatientList();
+}
+
+/* ═══ STATS ═══ */
+function calcStats() {
+  const today = todayStr();
+  const now   = new Date();
+  let daily=0,monthly=0,yearly=0;
+  sessions.filter(s=>s.status==='came').forEach(s=>{
+    const d = new Date(s.date);
+    if(s.date===today) daily+=s.total;
+    if(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()) monthly+=s.total;
+    if(d.getFullYear()===now.getFullYear()) yearly+=s.total;
+  });
+  document.getElementById('stPatients').textContent = patients.length;
+  document.getElementById('stDaily').textContent    = fmtTL(daily)+' TL';
+  document.getElementById('stMonthly').textContent  = fmtTL(monthly)+' TL';
+  document.getElementById('stYearly').textContent   = fmtTL(yearly)+' TL';
+}
+
+/* ═══ PATIENT LIST (Alphabetical) ═══ */
+function renderPatientList() {
+  const q     = (document.getElementById('patientSearch')?.value||'').toLowerCase();
+  const tbody = document.getElementById('patientTbody');
+  if(!tbody) return;
+
+  let list = patients
+    .map(p=>{
+      const ptSessions = sessions.filter(s=>s.patientId===p.id);
+      const lastSess   = sortSessions(ptSessions).slice(-1)[0];
+      const totalSpend = ptSessions.filter(s=>s.status==='came').reduce((acc,s)=>acc+s.total,0);
+      return { ...p, ptSessions, lastSess, totalSpend };
+    })
+    .filter(p=>{
+      if(!q) return true;
+      return p.name.toLowerCase().includes(q)||p.phone.includes(q);
+    })
+    .sort((a,b)=>a.name.localeCompare(b.name,'tr'));
+
+  if(!list.length){
+    tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--light);font-style:italic">Hasta bulunamadı.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map((p,i)=>`
+    <tr>
+      <td style="color:var(--light);font-size:12px">${i+1}</td>
+      <td style="font-weight:600">${p.name}</td>
+      <td>${p.phone}</td>
+      <td><span class="tag blue">${p.ptSessions.length} seans</span></td>
+      <td>${p.lastSess ? fmtDate(p.lastSess.date)+' '+p.lastSess.time : '—'}</td>
+      <td style="font-weight:700;color:var(--navy)">${fmtTL(p.totalSpend)} TL</td>
+      <td>
+        <button class="btn-danger" onclick="deletePatient('${p.id}')">Sil</button>
+      </td>
+    </tr>`).join('');
+}
+
+function deletePatient(id) {
+  const p = patients.find(x=>x.id===id);
+  if(!p) return;
+  if(!confirm(`"${p.name}" adlı hastayı ve tüm randevularını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) return;
+  sessions = sessions.filter(s=>s.patientId!==id);
+  patients = patients.filter(x=>x.id!==id);
+  saveSessions(); savePatients();
+  renderPatientList(); renderTrackingPanel(); calcStats();
+}
+
+/* ═══ MANAGEMENT PANEL ═══ */
+function renderManagePanel() {
+  const container = document.getElementById('manageProcList');
+  if(!container) return;
+  container.innerHTML = '';
+  document.getElementById('procCount').textContent = procedures.length+' işlem';
+  procedures.forEach(p=>{
+    container.innerHTML += `
+      <div class="proc-manage-row" id="pr_${p.id}">
+        <input class="proc-manage-name" value="${p.name}" onchange="updateProc('${p.id}','name',this.value)" placeholder="İşlem adı">
+        <input type="number" value="${p.price}" min="0" onchange="updateProc('${p.id}','price',this.value)" placeholder="TL">
+        <input type="number" value="${p.stock}" min="0" onchange="updateProc('${p.id}','stock',this.value)" placeholder="Stok">
+        <span class="tag ${p.stock<=0?'red':p.stock<5?'gold':'green'}">${p.stock<=0?'Tükendi':p.stock<5?'Az: '+p.stock:''+p.stock}</span>
+        <button class="btn-danger" onclick="removeProcedure('${p.id}')">Sil</button>
+      </div>`;
+  });
+}
+
+function updateProc(id, field, val) {
+  const p = procedures.find(x=>x.id===id);
+  if(!p) return;
+  if(field==='price') p.price = Math.max(0,parseFloat(val)||0);
+  if(field==='stock') p.stock = Math.max(0,parseInt(val)||0);
+  if(field==='name')  p.name  = val;
+  saveProcs();
+  renderBookingProcs();
+}
+
+function removeProcedure(id) {
+  if(!confirm('Bu işlemi listeden kaldırmak istediğinize emin misiniz?')) return;
+  procedures = procedures.filter(p=>p.id!==id);
+  saveProcs();
+  renderManagePanel();
+  renderBookingProcs();
+}
+
+function addProcedure() {
+  const name  = document.getElementById('newProcName').value.trim();
+  const price = parseFloat(document.getElementById('newProcPrice').value)||0;
+  const stock = parseInt(document.getElementById('newProcStock').value)||0;
+  if(!name){ alert('İşlem adı boş bırakılamaz.'); return; }
+  procedures.push({ id: uid(), name, price, stock });
+  saveProcs();
+  document.getElementById('newProcName').value='';
+  document.getElementById('newProcPrice').value='';
+  document.getElementById('newProcStock').value='';
+  renderManagePanel();
+  renderBookingProcs();
+}
+
+/* ═══ DOWNLOAD CSV ═══ */
+function downloadFullCSV() {
+  if(!sessions.length){ alert('Kayıt bulunamadı.'); return; }
+  const sorted = sortSessions(sessions);
+  let csv='\uFEFFTarih;Saat;Hasta Adı;Telefon;İşlemler;Tutar (TL);Durum;Not\n';
+  sorted.forEach(s=>{
+    const st = s.status==='came'?'Geldi':s.status==='not-came'?'Gelmedi':'Bekliyor';
+    csv+=`"${s.date}";"${s.time}";"${s.patientName}";"${s.phone}";"${(s.procs||[]).join(', ')}";"${s.total}";"${st}";"${s.note||''}"\n`;
+  });
+  dlCSV(csv,'HospitalTR_Tum_Randevular.csv');
+}
+
+function downloadPatientCSV() {
+  if(!patients.length){ alert('Hasta bulunamadı.'); return; }
+  const sorted = [...patients].sort((a,b)=>a.name.localeCompare(b.name,'tr'));
+  let csv='\uFEFFAd Soyad;Telefon;Toplam Seans;Toplam Harcama (TL)\n';
+  sorted.forEach(p=>{
+    const ptSessions = sessions.filter(s=>s.patientId===p.id);
+    const totalSpend = ptSessions.filter(s=>s.status==='came').reduce((a,s)=>a+s.total,0);
+    csv+=`"${p.name}";"${p.phone}";"${ptSessions.length}";"${totalSpend}"\n`;
+  });
+  dlCSV(csv,'HospitalTR_Hasta_Listesi.csv');
+}
+
+function dlCSV(content, filename) {
+  const blob = new Blob([content],{type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+</script>
+</body>
+</html>
