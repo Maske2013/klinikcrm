@@ -3,8 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HospitalTR – Hasta Takip & Randevu Sistemi</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>HospitalTR – Hasta Takip & Randevu Sistemi (Canlı Sürüm)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght=600;700;900&family=Inter:wght=300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
 <style>
 :root {
   --navy:#0A1628; --navy2:#1E3A5F; --gold:#C9A84C; --gold2:#E8C97A;
@@ -154,7 +158,7 @@ input,select,textarea{font-family:inherit}
 .search-bar input:focus{border-color:var(--gold)}
 .patient-table-wrap{overflow-x:auto}
 .ptable{width:100%;border-collapse:collapse;font-size:13px}
-.ptable th{background:var(--navy);color:#fff;padding:11px 14px;font-weight:600;font-size:11.5px;letter-spacing:.4px;text-align:left;white-space:nowrap}
+.ptable th{background:var(--navy);color:#fff;padding:11px 14px;font-weight:600;font-size:11.5px;letter-spacing Kent:.4px;text-align:left;white-space:nowrap}
 .ptable th:first-child{border-radius:0;padding-left:16px}
 .ptable td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;background:var(--white)}
 .ptable tr:hover td{background:#fafaf7}
@@ -206,7 +210,6 @@ input,select,textarea{font-family:inherit}
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
 <div class="login-wrap" id="loginWrap">
   <div class="login-card">
     <div class="login-logo">
@@ -238,10 +241,8 @@ input,select,textarea{font-family:inherit}
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
 <div class="app" id="app">
 
-  <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-logo">
       <div class="topbar-logo-mark">HTR</div>
@@ -255,7 +256,6 @@ input,select,textarea{font-family:inherit}
       <button class="tab-btn logout" onclick="doLogout()">Çıkış ✕</button>
     </div>
   </div>
-  <!-- Mobile nav -->
   <div class="mobile-nav">
     <button class="tab-btn active" onclick="goPanel('pBooking',this)">Randevu</button>
     <button class="tab-btn" onclick="goPanel('pTracking',this)">Takip</button>
@@ -266,13 +266,11 @@ input,select,textarea{font-family:inherit}
 
   <div class="main-content">
 
-    <!-- ══ PANEL 1: RANDEVU ══ -->
     <div class="panel active" id="pBooking">
       <div class="eyebrow">Rezervasyon</div>
       <div class="sec-title">Yeni Randevu Oluştur</div>
 
       <div class="booking-layout">
-        <!-- FORM -->
         <div class="card">
           <div class="card-body">
             <form id="appointmentForm" onsubmit="saveAppointment(event)">
@@ -312,7 +310,6 @@ input,select,textarea{font-family:inherit}
           </div>
         </div>
 
-        <!-- SUMMARY -->
         <div class="summary-side">
           <div class="summary-title">Protokol Özeti</div>
           <div id="summaryList"></div>
@@ -325,7 +322,6 @@ input,select,textarea{font-family:inherit}
       </div>
     </div>
 
-    <!-- ══ PANEL 2: TAKİP & MUHASEBE ══ -->
     <div class="panel" id="pTracking">
       <div class="eyebrow">Takip & Muhasebe</div>
       <div class="flex-between mb14">
@@ -333,7 +329,6 @@ input,select,textarea{font-family:inherit}
         <button class="btn-download" onclick="downloadFullCSV()">📥 Tümünü İndir (CSV)</button>
       </div>
 
-      <!-- STAT CARDS -->
       <div class="stat-grid">
         <div class="stat-card accent-navy">
           <div class="s-label">Toplam Kayıtlı Hasta</div>
@@ -357,35 +352,31 @@ input,select,textarea{font-family:inherit}
         </div>
       </div>
 
-      <!-- TODAY -->
       <div class="day-section">
         <div class="day-header">
           <div class="day-badge today">🟢 Bugünkü Randevular</div>
-          <span class="day-count" id="cntToday">0 randevu — saate göre sıralı</span>
+          <span class="day-count" id="cntToday">0 randevu</span>
         </div>
         <div class="appt-list" id="listToday"><div class="no-record">Bugün randevu bulunmuyor.</div></div>
       </div>
 
-      <!-- TOMORROW -->
       <div class="day-section">
         <div class="day-header">
           <div class="day-badge tomorrow">🔵 Yarınki Randevular</div>
-          <span class="day-count" id="cntTomorrow">0 randevu — saate göre sıralı</span>
+          <span class="day-count" id="cntTomorrow">0 randevu</span>
         </div>
         <div class="appt-list" id="listTomorrow"><div class="no-record">Yarın randevu bulunmuyor.</div></div>
       </div>
 
-      <!-- FUTURE -->
       <div class="day-section">
         <div class="day-header">
           <div class="day-badge future">📅 Diğer Günler</div>
-          <span class="day-count" id="cntFuture">0 randevu — tarih ve saate göre sıralı</span>
+          <span class="day-count" id="cntFuture">0 randevu</span>
         </div>
         <div class="appt-list" id="listFuture"><div class="no-record">Diğer günlerde randevu bulunmuyor.</div></div>
       </div>
     </div>
 
-    <!-- ══ PANEL 3: HASTA LİSTESİ ══ -->
     <div class="panel" id="pPatients">
       <div class="eyebrow">Hasta Yönetimi</div>
       <div class="flex-between mb14">
@@ -420,12 +411,10 @@ input,select,textarea{font-family:inherit}
       </div>
     </div>
 
-    <!-- ══ PANEL 4: İŞLEM YÖNETİMİ ══ -->
     <div class="panel" id="pManage">
       <div class="eyebrow">Yönetim Paneli</div>
       <div class="sec-title">İşlem & Stok Yönetimi</div>
 
-      <!-- ADD NEW -->
       <div class="card mb14">
         <div class="card-header">
           <h2>➕ Yeni İşlem Ekle</h2>
@@ -440,7 +429,6 @@ input,select,textarea{font-family:inherit}
         </div>
       </div>
 
-      <!-- LIST -->
       <div class="card">
         <div class="card-header"><h2>📋 Mevcut İşlemler</h2><span class="txt-muted" id="procCount"></span></div>
         <div class="card-body" style="padding:14px 20px">
@@ -455,37 +443,140 @@ input,select,textarea{font-family:inherit}
       </div>
     </div>
 
-  </div><!-- /main-content -->
-</div><!-- /app -->
-
-<script>
+  </div></div><script>
 /* ═══════════════════════════════════════════════════
-   CORE DATA & STORAGE
+   FIREBASE YAPILANDIRMASI (DOĞRU AYARLAR ENJEKTE EDİLDİ)
 ═══════════════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCHYTTo7P5D44zoW1Rz40nkgQUrA5STDRE",
+  authDomain: "hospitaltr-crm.firebaseapp.com",
+  databaseURL: "https://hospitaltr-crm-default-rtdb.firebaseio.com",
+  projectId: "hospitaltr-crm",
+  storageBucket: "hospitaltr-crm.firebasestorage.app",
+  messagingSenderId: "611882936406",
+  appId: "1:611882936406:web:c89fa61d1c8a9caa1d33f7"
+};
+
+// Global Değişkenler ve Sabit Tanımlamalar
 const CREDS = { email: "smanbilisim@gmail.com", password: "Masal2053masal" };
-const SK_PROCS = 'htr_procs_v2';
-const SK_PATIENTS = 'htr_patients_v2';
-const SK_SESSIONS = 'htr_sessions_v2';
 const SK_AUTH = 'htr_auth_v2';
 const SK_TAB = 'htr_tab_v2';
-
 let OTP_CODE = "";
 
-let procedures = JSON.parse(localStorage.getItem(SK_PROCS)) || [
-  { id: 'p_botox', name: 'Botoks Uygulaması', price: 3500, stock: 45 },
-  { id: 'p_filler', name: 'Dermal Dolgu', price: 4500, stock: 20 },
-  { id: 'p_youth', name: 'Gençlik Aşısı', price: 2800, stock: 30 },
-  { id: 'p_liquid', name: 'Sıvı Yüz Germe', price: 6500, stock: 15 },
-];
+let procedures = [];
+let patients  = [];
+let sessions  = [];
+let isFirebaseInitialized = false;
 
-/* patients: { id, name, phone, sessions:[] }
-   sessions: { sid, patientId, date, time, procs:[], total, status:'pending'|'came'|'not-came', note } */
-let patients  = JSON.parse(localStorage.getItem(SK_PATIENTS)) || [];
-let sessions  = JSON.parse(localStorage.getItem(SK_SESSIONS)) || [];
+/* ═══ GİRİŞ PANELİ DOĞRULAMA MEKANİZMASI (TAMAMEN İZOLE - KİLİTLENME YAPMAZ) ═══ */
+function handleLogin(e) {
+  e.preventDefault();
+  const em = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPwd').value;
+  
+  if (em === CREDS.email && pw === CREDS.password) {
+    OTP_CODE = Math.floor(100000 + Math.random() * 900000).toString();
+    document.getElementById('frmLogin').style.display = 'none';
+    document.getElementById('frmOtp').style.display = 'block';
+    document.getElementById('otpDisplay').textContent = OTP_CODE;
+    showMsg('loginOk', true);
+    showMsg('loginErr', false);
+  } else {
+    showMsg('loginErr', true);
+    showMsg('loginOk', false);
+  }
+}
 
-function saveProcs()    { localStorage.setItem(SK_PROCS, JSON.stringify(procedures)); }
-function savePatients() { localStorage.setItem(SK_PATIENTS, JSON.stringify(patients)); }
-function saveSessions() { localStorage.setItem(SK_SESSIONS, JSON.stringify(sessions)); }
+function handleOtp(e) {
+  e.preventDefault();
+  const code = document.getElementById('loginOtp').value.trim();
+  if (code === OTP_CODE || code === '123456') {
+    sessionStorage.setItem(SK_AUTH, '1');
+    bootApp();
+  } else {
+    showMsg('loginErr', true);
+  }
+}
+
+function showMsg(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+
+function doLogout() {
+  sessionStorage.clear();
+  location.reload();
+}
+
+/* ═══ BOOT PANEL AÇILIŞ MEKANİZMASI ═══ */
+function bootApp() {
+  document.getElementById('loginWrap').style.display = 'none';
+  const app = document.getElementById('app');
+  if (app) app.style.display = 'flex';
+  
+  generateTimeSlots();
+  initFirebaseConnection();
+  
+  const lastTab = sessionStorage.getItem(SK_TAB) || 'pBooking';
+  goPanel(lastTab, null);
+}
+
+/* ═══ FIREBASE CANLI SENKRONİZASYON BAĞLANTISI ═══ */
+function initFirebaseConnection() {
+  if (isFirebaseInitialized) return;
+  
+  try {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    
+    db.ref('procedures').on('value', snapshot => {
+      const data = snapshot.val();
+      procedures = data ? Object.values(data) : [
+        { id: 'p_botox', name: 'Botoks Uygulaması', price: 3500, stock: 45 },
+        { id: 'p_filler', name: 'Dermal Dolgu', price: 4500, stock: 20 },
+        { id: 'p_youth', name: 'Gençlik Aşısı', price: 2800, stock: 30 },
+        { id: 'p_liquid', name: 'Sıvı Yüz Germe', price: 6500, stock: 15 },
+      ];
+      renderBookingProcs();
+      renderManagePanel();
+    });
+
+    db.ref('patients').on('value', snapshot => {
+      const data = snapshot.val();
+      patients = data ? Object.values(data) : [];
+      renderPatientList();
+      calcStats();
+    });
+
+    db.ref('sessions').on('value', snapshot => {
+      const data = snapshot.val();
+      sessions = data ? Object.values(data) : [];
+      renderTrackingPanel();
+      renderPatientList();
+      calcStats();
+    });
+    
+    window.saveProcs = function() { db.ref('procedures').set(procedures); };
+    window.savePatients = function() { db.ref('patients').set(patients); };
+    window.saveSessions = function() { db.ref('sessions').set(sessions); };
+    
+    isFirebaseInitialized = true;
+  } catch (error) {
+    console.error("Firebase başlatma hatası:", error);
+    window.saveProcs = function() {};
+    window.savePatients = function() {};
+    window.saveSessions = function() {};
+  }
+}
+
+/* ═══ SAYFA İLK YÜKLENME AYARI ═══ */
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem(SK_AUTH) === '1') {
+    bootApp();
+  }
+  const fd = document.getElementById('fDate');
+  if (fd) fd.value = todayStr();
+});
 
 /* ═══ HELPERS ═══ */
 function todayStr()    { return new Date().toISOString().slice(0,10); }
@@ -503,76 +594,20 @@ function sortSessions(list) {
   });
 }
 
-/* ═══ LOGIN ═══ */
-function handleLogin(e) {
-  e.preventDefault();
-  const em = document.getElementById('loginEmail').value.trim();
-  const pw = document.getElementById('loginPwd').value;
-  if(em===CREDS.email && pw===CREDS.password) {
-    OTP_CODE = Math.floor(100000+Math.random()*900000).toString();
-    document.getElementById('frmLogin').style.display='none';
-    document.getElementById('frmOtp').style.display='block';
-    document.getElementById('otpDisplay').textContent = OTP_CODE;
-    showMsg('loginOk', true);
-  } else {
-    showMsg('loginErr', true);
-  }
-}
-
-function handleOtp(e) {
-  e.preventDefault();
-  const code = document.getElementById('loginOtp').value.trim();
-  if(code === OTP_CODE || code === '123456') {
-    sessionStorage.setItem(SK_AUTH,'1');
-    bootApp();
-  } else {
-    showMsg('loginErr', true);
-  }
-}
-
-function showMsg(id, show) {
-  document.getElementById(id).style.display = show ? 'block' : 'none';
-}
-
-function doLogout() {
-  sessionStorage.clear();
-  location.reload();
-}
-
-/* ═══ BOOT ═══ */
-function bootApp() {
-  document.getElementById('loginWrap').style.display='none';
-  const app = document.getElementById('app');
-  app.style.display='flex';
-  generateTimeSlots();
-  renderBookingProcs();
-  renderManagePanel();
-  renderTrackingPanel();
-  renderPatientList();
-  const lastTab = sessionStorage.getItem(SK_TAB) || 'pBooking';
-  goPanel(lastTab, null);
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  if(sessionStorage.getItem(SK_AUTH)==='1') bootApp();
-  // default today in booking
-  const fd = document.getElementById('fDate');
-  if(fd) fd.value = todayStr();
-});
-
 /* ═══ TABS ═══ */
 function goPanel(id, btn) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn:not(.logout)').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  // Highlight all matching tab buttons (desktop + mobile)
+  const targetPanel = document.getElementById(id);
+  if (targetPanel) targetPanel.classList.add('active');
+  
   document.querySelectorAll('.tab-btn:not(.logout)').forEach(b=>{
-    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
   });
   sessionStorage.setItem(SK_TAB, id);
-  if(id==='pTracking')  { renderTrackingPanel(); calcStats(); }
-  if(id==='pPatients')  { renderPatientList(); }
-  if(id==='pManage')    { renderManagePanel(); }
+  if (id==='pTracking') { renderTrackingPanel(); calcStats(); }
+  if (id==='pPatients') { renderPatientList(); }
+  if (id==='pManage')   { renderManagePanel(); }
 }
 
 /* ═══ TIME SLOTS ═══ */
@@ -613,7 +648,7 @@ function toggleProcCard(id) {
   const lbl = document.getElementById('lbl_'+id);
   if(!chk||chk.disabled) return;
   chk.checked = !chk.checked;
-  lbl.classList.toggle('selected', chk.checked);
+  if (lbl) lbl.classList.toggle('selected', chk.checked);
   calcTotal();
 }
 
@@ -626,22 +661,24 @@ function calcTotal() {
     if(p){ total+=p.price; html+=`<div class="summary-item"><span class="si-name">· ${p.name}</span><span class="si-price">${p.price===0?'Ücretsiz':fmtTL(p.price)+' TL'}</span></div>`; }
   });
   const sl = document.getElementById('summaryList');
-  sl.innerHTML = html || `<div class="summary-empty">Henüz işlem seçilmedi.</div>`;
-  document.getElementById('totalAmt').innerHTML = fmtTL(total)+' <span style="font-size:.55em;font-weight:400;color:rgba(232,201,122,.6)">TL</span>';
+  if (sl) sl.innerHTML = html || `<div class="summary-empty">Henüz işlem seçilmedi.</div>`;
+  const ta = document.getElementById('totalAmt');
+  if (ta) ta.innerHTML = fmtTL(total)+' <span style="font-size:.55em;font-weight:400;color:rgba(232,201,122,.6)">TL</span>';
 }
 
-/* CRM lookup */
 function crmLookup(val) {
   const ph = cleanPhone(val);
-  const alert = document.getElementById('crmAlert');
+  const alertBox = document.getElementById('crmAlert');
   const existing = patients.find(p=>cleanPhone(p.phone)===ph);
   if(existing && ph.length>8){
-    alert.style.display='block';
-    alert.textContent = `✓ CRM'de bulundu: ${existing.name} — ${existing.sessions} seans kaydı`;
+    if (alertBox) {
+      alertBox.style.display='block';
+      alertBox.textContent = `✓ CRM'de bulundu: ${existing.name} — ${existing.sessions || 0} seans kaydı`;
+    }
     document.getElementById('fFirst').value = existing.name.split(' ')[0]||'';
     document.getElementById('fLast').value  = existing.name.split(' ').slice(1).join(' ')||'';
-  } else {
-    alert.style.display='none';
+  } else if (alertBox) {
+    alertBox.style.display='none';
   }
 }
 
@@ -668,23 +705,21 @@ function saveAppointment(e) {
     const p = procedures.find(x=>x.id===c.getAttribute('data-id'));
     if(p){ procNames.push(p.name); total+=p.price; p.stock=Math.max(0,p.stock-1); }
   });
-  saveProcs();
+  if (typeof saveProcs === "function") saveProcs();
 
-  // Upsert patient
   let patient = patients.find(p=>cleanPhone(p.phone)===ph);
   if(!patient){
-    patient = { id: uid(), name, phone, sessions: 0 };
+    patient = { id: uid(), name, phone, sessions: 1 };
     patients.push(patient);
   } else {
     patient.name = name;
+    patient.sessions = (patient.sessions || 0) + 1;
   }
-  patient.sessions = sessions.filter(s=>s.patientId===patient.id).length + 1;
-  savePatients();
+  if (typeof savePatients === "function") savePatients();
 
-  // Save session
   const session = { sid:uid(), patientId:patient.id, patientName:name, phone, date, time, procs:procNames, total, status:'pending', note };
   sessions.push(session);
-  saveSessions();
+  if (typeof saveSessions === "function") saveSessions();
 
   alert(`✓ Randevu kaydedildi: ${name} — ${date} ${time}`);
   document.getElementById('appointmentForm').reset();
@@ -708,9 +743,9 @@ function renderTrackingPanel() {
   tomorrowList.sort(sortTime);
   futureList.sort((a,b)=>{const d=(a.date||'').localeCompare(b.date||'');return d!==0?d:sortTime(a,b);});
 
-  document.getElementById('cntToday').textContent    = todayList.length+' randevu — saate göre sıralı';
-  document.getElementById('cntTomorrow').textContent = tomorrowList.length+' randevu — saate göre sıralı';
-  document.getElementById('cntFuture').textContent   = futureList.length+' randevu — tarih ve saate göre sıralı';
+  if(document.getElementById('cntToday')) document.getElementById('cntToday').textContent = todayList.length+' randevu';
+  if(document.getElementById('cntTomorrow')) document.getElementById('cntTomorrow').textContent = tomorrowList.length+' randevu';
+  if(document.getElementById('cntFuture')) document.getElementById('cntFuture').textContent = futureList.length+' randevu';
 
   renderApptList('listToday',    todayList,    today);
   renderApptList('listTomorrow', tomorrowList, today);
@@ -719,10 +754,10 @@ function renderTrackingPanel() {
 
 function renderApptList(containerId, list, today) {
   const container = document.getElementById(containerId);
+  if(!container) return;
   if(!list.length){ container.innerHTML='<div class="no-record">Bu zaman dilimine ait randevu bulunmuyor.</div>'; return; }
 
   container.innerHTML = list.map(s=>{
-    const isPast = s.date < today;
     const procs  = (s.procs||[]).map(n=>`<span class="tag blue" style="font-size:10px">${n}</span>`).join('');
     let statusClass = '';
     if(s.status==='came')     statusClass='came';
@@ -761,26 +796,24 @@ function setStatus(sid, status) {
   const s = sessions.find(x=>x.sid===sid);
   if(!s) return;
   s.status = (s.status===status) ? 'pending' : status;
-  saveSessions();
-  renderTrackingPanel();
-  calcStats();
+  if (typeof saveSessions === "function") saveSessions();
 }
 
 function deleteSession(sid) {
   const s = sessions.find(x=>x.sid===sid);
   if(!s) return;
-  if(!confirm(`"${s.patientName}" için ${s.date} ${s.time} randevusunu silmek istediğinize emin misiniz?`)) return;
-  // Restore stock
+  if(!confirm(`"${s.patientName}" randevusunu silmek istediğinize emin misiniz?`)) return;
+  
   if(s.status==='pending'){
     (s.procs||[]).forEach(name=>{
       const p=procedures.find(x=>x.name===name);
       if(p) p.stock++;
     });
-    saveProcs();
+    if (typeof saveProcs === "function") saveProcs();
   }
   sessions = sessions.filter(x=>x.sid!==sid);
-  saveSessions();
-  // Update patient session count
+  if (typeof saveSessions === "function") saveSessions();
+
   const patient = patients.find(p=>p.id===s.patientId);
   if(patient) {
     const remaining = sessions.filter(x=>x.patientId===s.patientId);
@@ -789,11 +822,8 @@ function deleteSession(sid) {
     } else {
       patient.sessions = remaining.length;
     }
-    savePatients();
+    if (typeof savePatients === "function") savePatients();
   }
-  renderTrackingPanel();
-  calcStats();
-  renderPatientList();
 }
 
 /* ═══ STATS ═══ */
@@ -807,13 +837,13 @@ function calcStats() {
     if(d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth()) monthly+=s.total;
     if(d.getFullYear()===now.getFullYear()) yearly+=s.total;
   });
-  document.getElementById('stPatients').textContent = patients.length;
-  document.getElementById('stDaily').textContent    = fmtTL(daily)+' TL';
-  document.getElementById('stMonthly').textContent  = fmtTL(monthly)+' TL';
-  document.getElementById('stYearly').textContent   = fmtTL(yearly)+' TL';
+  if(document.getElementById('stPatients')) document.getElementById('stPatients').textContent = patients.length;
+  if(document.getElementById('stDaily')) document.getElementById('stDaily').textContent    = fmtTL(daily)+' TL';
+  if(document.getElementById('stMonthly')) document.getElementById('stMonthly').textContent  = fmtTL(monthly)+' TL';
+  if(document.getElementById('stYearly')) document.getElementById('stYearly').textContent   = fmtTL(yearly)+' TL';
 }
 
-/* ═══ PATIENT LIST (Alphabetical) ═══ */
+/* ═══ PATIENT LIST ═══ */
 function renderPatientList() {
   const q     = (document.getElementById('patientSearch')?.value||'').toLowerCase();
   const tbody = document.getElementById('patientTbody');
@@ -852,13 +882,11 @@ function renderPatientList() {
 }
 
 function deletePatient(id) {
-  const p = patients.find(x=>x.id===id);
-  if(!p) return;
-  if(!confirm(`"${p.name}" adlı hastayı ve tüm randevularını silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) return;
+  if(!confirm(`Hastayı ve tüm randevularını silmek istediğinize emin misiniz?`)) return;
   sessions = sessions.filter(s=>s.patientId!==id);
   patients = patients.filter(x=>x.id!==id);
-  saveSessions(); savePatients();
-  renderPatientList(); renderTrackingPanel(); calcStats();
+  if (typeof saveSessions === "function") saveSessions();
+  if (typeof savePatients === "function") savePatients();
 }
 
 /* ═══ MANAGEMENT PANEL ═══ */
@@ -866,7 +894,7 @@ function renderManagePanel() {
   const container = document.getElementById('manageProcList');
   if(!container) return;
   container.innerHTML = '';
-  document.getElementById('procCount').textContent = procedures.length+' işlem';
+  if(document.getElementById('procCount')) document.getElementById('procCount').textContent = procedures.length+' işlem';
   procedures.forEach(p=>{
     container.innerHTML += `
       <div class="proc-manage-row" id="pr_${p.id}">
@@ -885,14 +913,13 @@ function updateProc(id, field, val) {
   if(field==='price') p.price = Math.max(0,parseFloat(val)||0);
   if(field==='stock') p.stock = Math.max(0,parseInt(val)||0);
   if(field==='name')  p.name  = val;
-  saveProcs();
-  renderBookingProcs();
+  if (typeof saveProcs === "function") saveProcs();
 }
 
 function removeProcedure(id) {
   if(!confirm('Bu işlemi listeden kaldırmak istediğinize emin misiniz?')) return;
   procedures = procedures.filter(p=>p.id!==id);
-  saveProcs();
+  if (typeof saveProcs === "function") saveProcs();
   renderManagePanel();
   renderBookingProcs();
 }
@@ -903,7 +930,7 @@ function addProcedure() {
   const stock = parseInt(document.getElementById('newProcStock').value)||0;
   if(!name){ alert('İşlem adı boş bırakılamaz.'); return; }
   procedures.push({ id: uid(), name, price, stock });
-  saveProcs();
+  if (typeof saveProcs === "function") saveProcs();
   document.getElementById('newProcName').value='';
   document.getElementById('newProcPrice').value='';
   document.getElementById('newProcStock').value='';
@@ -911,7 +938,6 @@ function addProcedure() {
   renderBookingProcs();
 }
 
-/* ═══ DOWNLOAD CSV ═══ */
 function downloadFullCSV() {
   if(!sessions.length){ alert('Kayıt bulunamadı.'); return; }
   const sorted = sortSessions(sessions);
